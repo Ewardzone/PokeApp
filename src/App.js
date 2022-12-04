@@ -1,24 +1,45 @@
-import logo from './logo.svg';
-import './App.css';
+import GlobalStyles from "./styles/GlobalStyles";
+import Search from "./components/search/Search";
+import "./App.css";
+import Card from "./components/pokeCard/card/Card";
+import { MyAppStyles } from "./AppStyles";
+import axios from "axios";
+import { useState } from "react";
+import Loader from "../src/components/loader/Loader";
+import { initialScreen } from './data/initialScreen'
 
 function App() {
+  const [data, setData] = useState(initialScreen);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleSubmit = async (e, pokemon) => {
+    e.preventDefault();
+
+    setData(null)
+    setError(false)
+    setIsLoading(true)
+
+    try{
+      let selectedPokemon = pokemon.toLowerCase().trim()
+      const { data } = await axios.get(`https://pokeapi.co/api/v2/pokemon/${selectedPokemon}`)
+      setData(data)
+    }catch (error) {
+      setError('Pokemon not found')
+    }
+    setIsLoading(false)
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <MyAppStyles>
+        <Search handleSubmit={handleSubmit} />
+        {isLoading && <Loader/>}
+        {error && <h2 style={{ color: "red" }}>{error}</h2>}
+        {data && <Card {...data} />}
+      </MyAppStyles>
+      <GlobalStyles />
+    </>
   );
 }
 
